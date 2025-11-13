@@ -12,9 +12,7 @@ try:
     driver.find_element(By.ID, "password").send_keys("SuperSecretPassword!")
     button = driver.find_element(By.ID, "submit-login")
     button.click()
-    if "secure" in driver.current_url.lower():
-        print("✅ Login successful.")
-    else:
-        print("❌ Login failed.")
+    assert "secure" in driver.current_url, "Login was not successful."
+    print("✅ Login test successful.")
 except Exception as e:
         print(f"❌ An error occurred during the test: {e}")
