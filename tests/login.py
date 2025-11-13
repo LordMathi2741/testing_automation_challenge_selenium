@@ -4,7 +4,7 @@ import chromedriver_autoinstaller
 
 
 try:
-    chromedriver_autoinstaller.install()
+    chromedriver_autoinstaller.install(cwd=True)
     driver = webdriver.Chrome()
     driver.maximize_window()
     driver.get("https://practice.expandtesting.com/login")
