@@ -4,11 +4,14 @@ import chromedriver_autoinstaller
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support.ui import WebDriverWait
 import time
+from concurrent.futures import ThreadPoolExecutor
 error_message = "New record was not added successfully."
+
+def init():
+    chromedriver_autoinstaller.install(cwd=True)
 
 def insert_test():
     try:
-        chromedriver_autoinstaller.install(cwd=True)
         driver = webdriver.Chrome()
         driver.get("https://demoqa.com/webtables")
         driver.find_element(By.ID, "addNewRecordButton").click()
@@ -30,7 +33,7 @@ def insert_test():
         )
         assert target_row is not None, error_message
         print("✅ New record added successfully.")
-        time.sleep(100)
+        time.sleep(500)
     except WebDriverException as e:
         print(f"❌ An error occurred while trying to install WebDriver: {e}")
     except AssertionError as ae:
@@ -40,7 +43,6 @@ def insert_test():
         
 def search_test(input):
     try:
-        chromedriver_autoinstaller.install(cwd=True)
         driver = webdriver.Chrome()
         driver.get("https://demoqa.com/webtables")
         search_box = driver.find_element(By.ID, "searchBox")
@@ -62,10 +64,65 @@ def search_test(input):
         print(f"❌ An error was ocurred while trying to compare a condition: {ae}")
     except Exception as e:
         print(f"❌ An unexpected error occurred: {e}")
+        
+def edit_edit():
+    try:
+        driver = webdriver.Chrome()
+        driver.get("https://demoqa.com/webtables")
+        driver.find_element(By.ID, "edit-record-1").click()
+        first_name_field = driver.find_element(By.ID, "firstName")
+        first_name_field.clear()
+        first_name_field.send_keys("Jane")
+        driver.find_element(By.ID, "submit").click()
+        wait = WebDriverWait(driver, 10)
+        rows = wait.until(lambda d: d.find_elements(By.CSS_SELECTOR, ".rt-tbody .rt-tr-group"))
+        target_row = wait.until(
+        lambda _ : next(
+            (row for row in rows
+            if "Jane" in row.text),
+            None
+         )
+        )
+        assert target_row is not None, error_message
+        time.sleep(500)
+        print("✅ Record edited successfully.")
+    except WebDriverException as e:
+        print(f"❌ An error occurred while trying to install WebDriver: {e}")
+    except AssertionError as ae:
+        print(f"❌ An error was ocurred while trying to compare a condition: {ae}")
+    except Exception as e:
+        print(f"❌ An unexpected error occurred: {e}")
+
+def delete_test():
+    try:
+        driver = webdriver.Chrome()
+        driver.get("https://demoqa.com/webtables")
+        driver.find_element(By.ID, "delete-record-1").click()
+        wait = WebDriverWait(driver, 10)
+        rows = wait.until(lambda d: d.find_elements(By.CSS_SELECTOR, ".rt-tbody .rt-tr-group"))
+        target_row = wait.until(
+        lambda _ : next(
+            (row for row in rows
+            if "Cierra" in row.text),
+            None
+         )
+        )
+        assert target_row is None, error_message
+        print("✅ Record deleted successfully.")
+    except WebDriverException as e:
+        print(f"❌ An error occurred while trying to install WebDriver: {e}")
+    except AssertionError as ae:
+        print(f"❌ An error was ocurred while trying to compare a condition: {ae}")
+    except Exception as e:
+        print(f"❌ An unexpected error occurred: {e}")
     
         
     
 
 if __name__ == "__main__":
-    ##insert_test()
-    search_test("Cierra")
+    init()
+    with ThreadPoolExecutor() as executor:
+        executor.submit(insert_test)
+        executor.submit(search_test, "Alden")
+        executor.submit(edit_edit)
+        executor.submit(delete_test)
